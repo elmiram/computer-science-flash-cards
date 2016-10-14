@@ -4,20 +4,26 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
 
 app = Flask(__name__)
-app.config.from_object(__name__)
 
-# Load default config and override config from an environment variable
+DATABASE = os.path.join(app.root_path, 'mycards.db')
+SECRET_KEY='development key'
+USERNAME='admin'
+PASSWORD='default'
+
+# app.config.from_object(__name__)
+#
+# # Load default config and override config from an environment variable
 app.config.update(dict(
-    DATABASE=os.path.join(app.root_path, 'cards.db'),
+    # DATABASE=os.path.join(app.root_path, 'cards.db'),
     SECRET_KEY='development key',
-    USERNAME='admin',
-    PASSWORD='default'
+    # USERNAME='admin',
+    # PASSWORD='default'
 ))
-app.config.from_envvar('CARDS_SETTINGS', silent=True)
+# app.config.from_envvar('CARDS_SETTINGS', silent=True)
 
 
 def connect_db():
-    rv = sqlite3.connect(app.config['DATABASE'])
+    rv = sqlite3.connect(DATABASE)
     rv.row_factory = sqlite3.Row
     return rv
 
@@ -49,10 +55,10 @@ def close_db(error):
 
 # Uncomment and use this to initialize database, then comment it
 #   You can rerun it to pave the database and start over
-# @app.route('/initdb')
-# def initdb():
-#     init_db()
-#     return 'Initialized the database.'
+@app.route('/initdb')
+def initdb():
+    init_db()
+    return 'Initialized the database.'
 
 
 @app.route('/')
@@ -259,9 +265,9 @@ def mark_known(card_id, card_type):
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME']:
+        if request.form['username'] != USERNAME:
             error = 'Invalid username'
-        elif request.form['password'] != app.config['PASSWORD']:
+        elif request.form['password'] != PASSWORD:
             error = 'Invalid password'
         else:
             session['logged_in'] = True
@@ -278,4 +284,4 @@ def logout():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(debug=True)
